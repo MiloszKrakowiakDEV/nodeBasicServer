@@ -1,7 +1,6 @@
 require('dotenv').config();
 const http = require('http');
 const mysql = require('mysql2/promise');
-const http = require("http");
 const bcrypt = require("bcrypt");
 
 const SALT_ROUNDS = 10;
