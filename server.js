@@ -20,7 +20,7 @@ const pool = mysql.createPool({
 const server = http.createServer(async (req, res) => {
   console.log("Got a request");
 
-  if (req.method == "POST") {
+  if (req.method === "POST") {
     switch (req.url) {
 
       case "/user/add":
@@ -31,32 +31,58 @@ const server = http.createServer(async (req, res) => {
         });
 
         req.on("end", async () => {
+          let connection;
+
           try {
-            console.log(body);
             const data = JSON.parse(body);
+
+            if (!data.username || !data.password) {
+              res.writeHead(400, { 'Content-Type': 'application/json' });
+              return res.end(JSON.stringify({ error: "Brak nazwy użytkownika lub hasła" }));
+            }
 
             const hashedPassword = await bcrypt.hash(data.password, SALT_ROUNDS);
 
-            const connection = await pool.getConnection();
+            connection = await pool.getConnection();
 
             await connection.execute(
               `INSERT INTO users(username, password, points) VALUES (?, ?, ?)`,
-              [data.username, hashedPassword, data.points]
+              [data.username, hashedPassword, data.points || 0]
             );
 
-            connection.release();
-
-            res.end("Added user: " + data.username);
+            res.writeHead(201, { 'Content-Type': 'application/json' });
+            res.end(JSON.stringify({ message: "Użytkownik utworzony" }));
 
           } catch (err) {
             console.error(err);
+
+            if (err.code === "ER_DUP_ENTRY") {
+              res.writeHead(409, { 'Content-Type': 'application/json' });
+              return res.end(JSON.stringify({ error: "Użytkownik już istnieje" }));
+            }
+
+            if (err.code === "ER_BAD_NULL_ERROR") {
+              res.writeHead(400, { 'Content-Type': 'application/json' });
+              return res.end(JSON.stringify({ error: "Brak wymaganych danych" }));
+            }
+
+            if (err instanceof SyntaxError) {
+              res.writeHead(400, { 'Content-Type': 'application/json' });
+              return res.end(JSON.stringify({ error: "Niepoprawny JSON" }));
+            }
+
             res.writeHead(500, { 'Content-Type': 'application/json' });
-            res.end(JSON.stringify({ error: 'Podany użytkownik już istnieje' }));
+            res.end(JSON.stringify({ error: "Błąd serwera" }));
+          } finally {
+            if (connection) connection.release();
           }
         });
 
         break;
     }
+  } else {
+    res.writeHead(404, { 'Content-Type': 'application/json' });
+    res.end(JSON.stringify({ error: "Nie znaleziono endpointu" }));
   }
 });
 
