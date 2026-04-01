@@ -51,7 +51,7 @@ const server = http.createServer(async (req, res) => {
           } catch (err) {
             console.error(err);
             res.writeHead(500, { 'Content-Type': 'application/json' });
-            res.end(JSON.stringify({ error: 'Internal server error' }));
+            res.end(JSON.stringify({ error: 'Podany użytkownik już istnieje' }));
           }
         });
 
