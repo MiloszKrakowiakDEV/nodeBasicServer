@@ -19,12 +19,12 @@ const pool = mysql.createPool({
 
 const server = http.createServer(async (req, res) => {
   console.log("Got a request");
-
+  let body = ""
   if (req.method === "POST") {
     switch (req.url) {
 
       case "/user/add":
-        let body = "";
+        body = "";
 
         req.on("data", chunk => {
           body += chunk.toString();
@@ -79,8 +79,64 @@ const server = http.createServer(async (req, res) => {
         });
 
         break;
+      case "/user/getByLoginAndPassword":
+        body = "";
+
+        req.on("data", chunk => {
+          body += chunk.toString();
+        });
+
+        req.on("end", async () => {
+          let connection;
+
+          try {
+            const data = JSON.parse(body);
+
+            if (!data.username || !data.password) {
+              res.writeHead(400, { 'Content-Type': 'application/json' });
+              return res.end(JSON.stringify({ error: "Brak nazwy użytkownika lub hasła" }));
+            }
+
+
+            connection = await pool.getConnection();
+
+            const [rows] = await connection.execute(
+              `SELECT password FROM users WHERE username = ?`,
+              [data.username]
+            );
+
+            if (rows.length === 0) {
+              res.writeHead(201, { 'Content-Type': 'application/json' });
+              res.end(JSON.stringify({ message: "Nie odnaleziono użytkownika" }));
+            } else {
+              const hashedPassword = rows[0].password;
+              if (bcrypt.compare(data.password, hashedPassword)) {
+                const [rows] = await connection.execute(
+                  `SELECT * FROM users WHERE username = ?`,
+                  [data.username]
+                );
+                console.log(rows[0])
+                res.writeHead(201, { 'Content-Type': 'application/json' });
+                res.end(JSON.stringify(rows[0]));
+              } else {
+                res.writeHead(201, { 'Content-Type': 'application/json' });
+                res.end(JSON.stringify({ message: "Nieprawidłowe hasło" }));
+              }
+
+            }
+
+
+          } catch (err) {
+            console.error(err)
+          } finally {
+            if (connection) connection.release();
+          }
+        });
+
+        break;
     }
-  } else {
+  }
+  else {
     res.writeHead(404, { 'Content-Type': 'application/json' });
     res.end(JSON.stringify({ error: "Nie znaleziono endpointu" }));
   }
@@ -89,5 +145,5 @@ const server = http.createServer(async (req, res) => {
 const PORT = process.env.PORT || 3000;
 
 server.listen(PORT, () => {
-    console.log(`Server running on http://localhost:${PORT}`);
-  });
+  console.log(`Server running on http://localhost:${PORT}`);
+});
