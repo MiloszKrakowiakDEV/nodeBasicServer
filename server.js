@@ -106,8 +106,7 @@ const server = http.createServer(async (req, res) => {
             );
 
             if (rows.length === 0) {
-              res.writeHead(201, { 'Content-Type': 'application/json' });
-              res.end(JSON.stringify({ message: "Nie odnaleziono użytkownika" }));
+              throw "Nieprawidłowe dane logowania";
             } else {
               const hashedPassword = rows[0].password;
               if (await bcrypt.compare(data.password, hashedPassword)) {
@@ -119,8 +118,7 @@ const server = http.createServer(async (req, res) => {
                 res.writeHead(201, { 'Content-Type': 'application/json' });
                 res.end(JSON.stringify(rows[0]));
               } else {
-                res.writeHead(201, { 'Content-Type': 'application/json' });
-                res.end(JSON.stringify({ message: "Nieprawidłowe hasło" }));
+                throw "Nieprawidłowe dane logowania";
               }
 
             }
@@ -128,6 +126,8 @@ const server = http.createServer(async (req, res) => {
 
           } catch (err) {
             console.error(err)
+            res.writeHead(201, { 'Content-Type': 'application/json' });
+            res.end(JSON.stringify({ error: err.message }));
           } finally {
             if (connection) connection.release();
           }
