@@ -110,7 +110,7 @@ const server = http.createServer(async (req, res) => {
               res.end(JSON.stringify({ message: "Nie odnaleziono użytkownika" }));
             } else {
               const hashedPassword = rows[0].password;
-              if (bcrypt.compare(data.password, hashedPassword)) {
+              if (await bcrypt.compare(data.password, hashedPassword)) {
                 const [rows] = await connection.execute(
                   `SELECT * FROM users WHERE username = ?`,
                   [data.username]
