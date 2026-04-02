@@ -106,7 +106,7 @@ const server = http.createServer(async (req, res) => {
             );
 
             if (rows.length === 0) {
-              throw "Nieprawidłowe dane logowania";
+              throw new Error("Nieprawidłowe dane logowania");;
             } else {
               const hashedPassword = rows[0].password;
               if (await bcrypt.compare(data.password, hashedPassword)) {
@@ -116,9 +116,11 @@ const server = http.createServer(async (req, res) => {
                 );
                 console.log(rows[0])
                 res.writeHead(201, { 'Content-Type': 'application/json' });
-                res.end(JSON.stringify(rows[0]));
+                const user = rows[0];
+                delete user.password;
+                res.end(JSON.stringify(user));
               } else {
-                throw "Nieprawidłowe dane logowania";
+                throw new Error("Nieprawidłowe dane logowania");;
               }
 
             }
@@ -126,7 +128,7 @@ const server = http.createServer(async (req, res) => {
 
           } catch (err) {
             console.error(err)
-            res.writeHead(201, { 'Content-Type': 'application/json' });
+            res.writeHead(401, { 'Content-Type': 'application/json' });
             res.end(JSON.stringify({ error: err.message }));
           } finally {
             if (connection) connection.release();
