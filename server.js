@@ -149,7 +149,7 @@ const server = http.createServer(async (req, res) => {
           try {
             const data = JSON.parse(body);
 
-            if (!data.usernamed) {
+            if (!data.username) {
               res.writeHead(400, { 'Content-Type': 'application/json' });
               return res.end(JSON.stringify({ error: "Użytkownik nie istnieje" }));
             }
