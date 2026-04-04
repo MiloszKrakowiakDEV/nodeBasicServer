@@ -136,6 +136,57 @@ const server = http.createServer(async (req, res) => {
         });
 
         break;
+      case "/user/deleteUser":
+        body = "";
+
+        req.on("data", chunk => {
+          body += chunk.toString();
+        });
+
+        req.on("end", async () => {
+          let connection;
+
+          try {
+            const data = JSON.parse(body);
+
+            if (!data.usernamed) {
+              res.writeHead(400, { 'Content-Type': 'application/json' });
+              return res.end(JSON.stringify({ error: "Użytkownik nie istnieje" }));
+            }
+            connection = await pool.getConnection();
+            const [rows] = await connection.execute(
+              `SELECT password FROM users WHERE username = ?`,
+              [data.username]
+            );
+
+            if (rows.length === 0) {
+              throw new Error("Użytkownik nie istnieje");;
+            } else {
+              const selectedUser = rows[0];
+              const val1 = await connection.execute(
+                'DELETE FROM user_questions_answered WHERE user_id = ?',
+                [selectedUser.id]
+              )
+              const val2 = await connection.execute(
+                'DELETE FROM users WHERE id = ?',
+                [selectedUser.id]
+              )
+              res.writeHead(201, { 'Content-Type': 'application/json' });
+                res.end("{'message':'Użytkownik usunięty'");
+
+            }
+
+
+          } catch (err) {
+            console.error(err)
+            res.writeHead(401, { 'Content-Type': 'application/json' });
+            res.end(JSON.stringify({ error: err.message }));
+          } finally {
+            if (connection) connection.release();
+          }
+        });
+
+        break;
     }
   }
   else {
