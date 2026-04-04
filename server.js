@@ -172,7 +172,7 @@ const server = http.createServer(async (req, res) => {
                 [selectedUser.id]
               )
               res.writeHead(201, { 'Content-Type': 'application/json' });
-                res.end("{'message':'Użytkownik usunięty'");
+                res.end(JSON.stringify({message:"Konto zostało usunięte"}));
 
             }
 
