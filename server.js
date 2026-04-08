@@ -198,10 +198,9 @@ const server = http.createServer(async (req, res) => {
           let connection;
 
           try {
-            const data = JSON.parse(body);
             connection = await pool.getConnection();
             const [rows] = await connection.execute(
-              `SELECT username, points FROM users ORDER BY points DESC LIMIT 10`
+              `SELECT username, points, streak FROM users ORDER BY points DESC LIMIT 10`
             );
             res.writeHead(201, { 'Content-Type': 'application/json' });
             res.end(JSON.stringify(rows));
@@ -230,7 +229,7 @@ const server = http.createServer(async (req, res) => {
             const data = JSON.parse(body);
             connection = await pool.getConnection();
             const [rows] = await connection.execute(
-              `SELECT username, points FROM users ORDER BY streak DESC LIMIT 10`
+              `SELECT username, points, streak FROM users ORDER BY streak DESC LIMIT 10`
             );
             res.writeHead(201, { 'Content-Type': 'application/json' });
             res.end(JSON.stringify(rows));
