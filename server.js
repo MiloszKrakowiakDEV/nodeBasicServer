@@ -172,10 +172,68 @@ const server = http.createServer(async (req, res) => {
                 [selectedUser.id]
               )
               res.writeHead(201, { 'Content-Type': 'application/json' });
-                res.end(JSON.stringify({message:"Konto zostało usunięte"}));
+              res.end(JSON.stringify({ message: "Konto zostało usunięte" }));
 
             }
 
+
+          } catch (err) {
+            console.error(err)
+            res.writeHead(401, { 'Content-Type': 'application/json' });
+            res.end(JSON.stringify({ error: err.message }));
+          } finally {
+            if (connection) connection.release();
+          }
+        });
+
+        break;
+      case "/user/getTopTenUsersByScore":
+        body = "";
+
+        req.on("data", chunk => {
+          body += chunk.toString();
+        });
+
+        req.on("end", async () => {
+          let connection;
+
+          try {
+            const data = JSON.parse(body);
+            connection = await pool.getConnection();
+            const [rows] = await connection.execute(
+              `SELECT username, points FROM users ORDER BY points DESC LIMIT 10`
+            );
+            res.writeHead(201, { 'Content-Type': 'application/json' });
+            res.end(JSON.stringify(rows));
+
+          } catch (err) {
+            console.error(err)
+            res.writeHead(401, { 'Content-Type': 'application/json' });
+            res.end(JSON.stringify({ error: err.message }));
+          } finally {
+            if (connection) connection.release();
+          }
+        });
+
+        break;
+        case "/user/getTopTenUsersByStreak":
+        body = "";
+
+        req.on("data", chunk => {
+          body += chunk.toString();
+        });
+
+        req.on("end", async () => {
+          let connection;
+
+          try {
+            const data = JSON.parse(body);
+            connection = await pool.getConnection();
+            const [rows] = await connection.execute(
+              `SELECT username, points FROM users ORDER BY streak DESC LIMIT 10`
+            );
+            res.writeHead(201, { 'Content-Type': 'application/json' });
+            res.end(JSON.stringify(rows));
 
           } catch (err) {
             console.error(err)
