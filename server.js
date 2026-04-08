@@ -97,7 +97,6 @@ const server = http.createServer(async (req, res) => {
               return res.end(JSON.stringify({ error: "Brak nazwy użytkownika lub hasła" }));
             }
 
-
             connection = await pool.getConnection();
 
             const [rows] = await connection.execute(
@@ -118,6 +117,7 @@ const server = http.createServer(async (req, res) => {
                 res.writeHead(201, { 'Content-Type': 'application/json' });
                 const user = rows[0];
                 delete user.password;
+                console.log(JSON.stringify(user))
                 res.end(JSON.stringify(user));
               } else {
                 throw new Error("Nieprawidłowe dane logowania");;
