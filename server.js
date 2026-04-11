@@ -200,7 +200,7 @@ const server = http.createServer(async (req, res) => {
           try {
             connection = await pool.getConnection();
             const [rows] = await connection.execute(
-              `SELECT username, points, streak FROM users ORDER BY points DESC LIMIT 10`
+              `SELECT username, points, streak FROM users ORDER BY points DESC, username ASC LIMIT 10`
             );
             res.writeHead(201, { 'Content-Type': 'application/json' });
             res.end(JSON.stringify(rows));
@@ -229,7 +229,7 @@ const server = http.createServer(async (req, res) => {
             const data = JSON.parse(body);
             connection = await pool.getConnection();
             const [rows] = await connection.execute(
-              `SELECT username, points, streak FROM users ORDER BY streak DESC LIMIT 10`
+              `SELECT username, points, streak FROM users ORDER BY streak DESC, username ASC LIMIT 10`
             );
             res.writeHead(201, { 'Content-Type': 'application/json' });
             res.end(JSON.stringify(rows));
@@ -264,7 +264,7 @@ const server = http.createServer(async (req, res) => {
               throw new Error("Nieprawidłowe dane logowania");;
             } else {
               const [val] = await connection.execute(
-                `SELECT count(*)+1 AS "message" FROM users WHERE streak > ? ORDER BY streak DESC`,
+                `SELECT count(*)+1 AS "message" FROM users WHERE streak >= ? ORDER BY streak DESC, username ASC`,
                 [rows[0].streak]
               );
               res.writeHead(201, { 'Content-Type': 'application/json' });
@@ -299,7 +299,7 @@ const server = http.createServer(async (req, res) => {
               throw new Error("Nieprawidłowe dane logowania");;
             } else {
               const [val] = await connection.execute(
-                `SELECT count(*)+1 AS "message" FROM users WHERE points > ? ORDER BY points DESC`,
+                `SELECT count(*)+1 AS "message" FROM users WHERE points >= ? ORDER BY points DESC, username ASC`,
                 [rows[0].points]
               );
               res.writeHead(201, { 'Content-Type': 'application/json' });
