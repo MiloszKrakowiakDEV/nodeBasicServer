@@ -244,6 +244,76 @@ const server = http.createServer(async (req, res) => {
         });
 
         break;
+      case "/user/getUserPositionByStreak":
+        body = "";
+
+        req.on("data", chunk => {
+          body += chunk.toString();
+        });
+
+        req.on("end", async () => {
+          let connection;
+          try {
+            const data = JSON.parse(body);
+            connection = await pool.getConnection();
+            const [rows] = await connection.execute(
+              `SELECT id FROM users WHERE username = ?`,
+              [data.username]
+            );
+            if (rows.length === 0) {
+              throw new Error("Nieprawidłowe dane logowania");;
+            } else {
+              const [val] = await connection.execute(
+                `SELECT count(*)+1 AS "message" FROM users WHERE streak > ? ORDER BY streak DESC`,
+                [rows.id]
+              );
+              res.writeHead(201, { 'Content-Type': 'application/json' });
+              res.end(JSON.stringify(val));
+            }
+          } catch (err) {
+            console.error(err)
+            res.writeHead(401, { 'Content-Type': 'application/json' });
+            res.end(JSON.stringify({ error: err.message }));
+          } finally {
+            if (connection) connection.release();
+          }
+        });
+        break;
+      case "/user/getUserPositionByScore":
+        body = "";
+
+        req.on("data", chunk => {
+          body += chunk.toString();
+        });
+
+        req.on("end", async () => {
+          let connection;
+          try {
+            const data = JSON.parse(body);
+            connection = await pool.getConnection();
+            const [rows] = await connection.execute(
+              `SELECT id FROM users WHERE username = ?`,
+              [data.username]
+            );
+            if (rows.length === 0) {
+              throw new Error("Nieprawidłowe dane logowania");;
+            } else {
+              const [val] = await connection.execute(
+                `SELECT count(*)+1 AS "message" FROM users WHERE streak > ? ORDER BY points DESC`,
+                [rows.id]
+              );
+              res.writeHead(201, { 'Content-Type': 'application/json' });
+              res.end(JSON.stringify(val));
+            }
+          } catch (err) {
+            console.error(err)
+            res.writeHead(401, { 'Content-Type': 'application/json' });
+            res.end(JSON.stringify({ error: err.message }));
+          } finally {
+            if (connection) connection.release();
+          }
+        });
+        break;
       case "/user/changePassword":
         body = "";
 
@@ -271,13 +341,13 @@ const server = http.createServer(async (req, res) => {
             } else {
               const hashedPassword = rows[0].password;
               if (await bcrypt.compare(data.oldPassword, hashedPassword)) {
-                const new_password = await bcrypt.hash(data.newPassword,SALT_ROUNDS);
+                const new_password = await bcrypt.hash(data.newPassword, SALT_ROUNDS);
                 const [] = await connection.execute(
-                'UPDATE users SET password = ? WHERE id = ?',
-                [new_password, rows[0].id]
-              )
+                  'UPDATE users SET password = ? WHERE id = ?',
+                  [new_password, rows[0].id]
+                )
                 res.writeHead(201, { 'Content-Type': 'application/json' });
-                res.end(JSON.stringify({message:"Poprawnie zmieniono hasło"}));
+                res.end(JSON.stringify({ message: "Poprawnie zmieniono hasło" }));
               } else {
                 throw new Error("Nieprawidłowe dane logowania");;
               }
