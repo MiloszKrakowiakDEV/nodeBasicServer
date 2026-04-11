@@ -215,7 +215,7 @@ const server = http.createServer(async (req, res) => {
         });
 
         break;
-        case "/user/getTopTenUsersByStreak":
+      case "/user/getTopTenUsersByStreak":
         body = "";
 
         req.on("data", chunk => {
@@ -233,6 +233,56 @@ const server = http.createServer(async (req, res) => {
             );
             res.writeHead(201, { 'Content-Type': 'application/json' });
             res.end(JSON.stringify(rows));
+
+          } catch (err) {
+            console.error(err)
+            res.writeHead(401, { 'Content-Type': 'application/json' });
+            res.end(JSON.stringify({ error: err.message }));
+          } finally {
+            if (connection) connection.release();
+          }
+        });
+
+        break;
+      case "/user/changePassword":
+        body = "";
+
+        req.on("data", chunk => {
+          body += chunk.toString();
+        });
+
+        req.on("end", async () => {
+          let connection;
+          try {
+            const data = JSON.parse(body);
+
+            if (!data.username || !data.oldPassword || !data.newPassword) {
+              res.writeHead(400, { 'Content-Type': 'application/json' });
+              throw new Error("Brak nazwy użytkownika, hasła lub nowego hasła");
+            }
+            connection = await pool.getConnection();
+            const [rows] = await connection.execute(
+              `SELECT password FROM users WHERE username = ?`,
+              [data.username]
+            );
+
+            if (rows.length === 0) {
+              throw new Error("Nieprawidłowe dane logowania");;
+            } else {
+              const hashedPassword = rows[0].password;
+              if (await bcrypt.compare(data.password, hashedPassword)) {
+                const new_password = bcrypt.hash(data.newPassword,SALT_ROUNDS);
+                const [] = await connection.execute(
+                'UPDATE users SET password = ? WHERE user_id = ?',
+                [new_password,rows[0].id]
+              )
+                res.writeHead(201, { 'Content-Type': 'application/json' });
+                res.end(JSON.stringify({message:"Poprawnie zmieniono hasło"}));
+              } else {
+                throw new Error("Nieprawidłowe dane logowania");;
+              }
+
+            }
 
           } catch (err) {
             console.error(err)
