@@ -264,7 +264,7 @@ const server = http.createServer(async (req, res) => {
               throw new Error("Nieprawidłowe dane logowania");;
             } else {
               const [val] = await connection.execute(
-                `SELECT count(*)+1 FROM (
+                `SELECT count(*)+1 as "message" FROM (
 (SELECT * FROM users WHERE streak > ?  ORDER BY streak DESC, username ASC)
 UNION ALL
 (SELECT * FROM users WHERE streak = ? AND username < ? ORDER BY streak DESC, username ASC)
@@ -303,7 +303,7 @@ UNION ALL
               throw new Error("Nieprawidłowe dane logowania");;
             } else {
               const [val] = await connection.execute(
-                `SELECT count(*)+1 FROM (
+                `SELECT count(*)+1 as "message" FROM (
 (SELECT * FROM users WHERE points > ?  ORDER BY points DESC, username ASC)
 UNION ALL
 (SELECT * FROM users WHERE points = ? AND username < ? ORDER BY points DESC, username ASC)
