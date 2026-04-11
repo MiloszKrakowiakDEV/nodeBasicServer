@@ -454,6 +454,45 @@ as mt group by mt.id having count(mt.id) = 1
         });
 
         break;
+        case "/user/setQuestionAsAnswered":
+        body = "";
+
+        req.on("data", chunk => {
+          body += chunk.toString();
+        });
+
+        req.on("end", async () => {
+          let connection;
+
+          try {
+            const data = JSON.parse(body);
+            connection = await pool.getConnection();
+            const [rows] = await connection.execute(
+              'select id from users where username = ?',
+              [data.username])
+            
+            const [rows1] = await connection.execute(
+              'insert into user_questions_answered(user_id, question_id) values(?,?)',
+              [rows[0].id,data.questionId])
+            
+            
+            if (rows.length === 0) {
+              throw new Error("Użytkownik nie istnieje")
+            } else {
+              res.writeHead(201, { 'Content-Type': 'application/json' });
+              res.end(JSON.stringify({message:"Poprawnie odpowiedziano"}));
+            }
+
+          } catch (err) {
+            console.error(err)
+            res.writeHead(401, { 'Content-Type': 'application/json' });
+            res.end(JSON.stringify({ error: err.message }));
+          } finally {
+            if (connection) connection.release();
+          }
+        });
+
+        break;
     }
   }
   else {
