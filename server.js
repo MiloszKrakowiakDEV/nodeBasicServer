@@ -262,7 +262,7 @@ const server = http.createServer(async (req, res) => {
             }
             connection = await pool.getConnection();
             const [rows] = await connection.execute(
-              `SELECT password FROM users WHERE username = ?`,
+              `SELECT password, id FROM users WHERE username = ?`,
               [data.username]
             );
 
