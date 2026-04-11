@@ -273,7 +273,7 @@ const server = http.createServer(async (req, res) => {
               if (await bcrypt.compare(data.oldPassword, hashedPassword)) {
                 const new_password = bcrypt.hash(data.newPassword,SALT_ROUNDS);
                 const [] = await connection.execute(
-                'UPDATE users SET password = ? WHERE user_id = ?',
+                'UPDATE users SET password = ? WHERE id = ?',
                 [new_password,rows[0].id]
               )
                 res.writeHead(201, { 'Content-Type': 'application/json' });
