@@ -257,7 +257,7 @@ const server = http.createServer(async (req, res) => {
             const data = JSON.parse(body);
             connection = await pool.getConnection();
             const [rows] = await connection.execute(
-              `SELECT id FROM users WHERE username = ?`,
+              `SELECT streak FROM users WHERE username = ?`,
               [data.username]
             );
             if (rows.length === 0) {
@@ -265,7 +265,7 @@ const server = http.createServer(async (req, res) => {
             } else {
               const [val] = await connection.execute(
                 `SELECT count(*)+1 AS "message" FROM users WHERE streak > ? ORDER BY streak DESC`,
-                [rows[0].id]
+                [rows[0].streak]
               );
               res.writeHead(201, { 'Content-Type': 'application/json' });
               res.end(JSON.stringify(val));
@@ -292,15 +292,15 @@ const server = http.createServer(async (req, res) => {
             const data = JSON.parse(body);
             connection = await pool.getConnection();
             const [rows] = await connection.execute(
-              `SELECT id FROM users WHERE username = ?`,
+              `SELECT points FROM users WHERE username = ?`,
               [data.username]
             );
             if (rows.length === 0) {
               throw new Error("Nieprawidłowe dane logowania");;
             } else {
               const [val] = await connection.execute(
-                `SELECT count(*)+1 AS "message" FROM users WHERE streak > ? ORDER BY points DESC`,
-                [rows[0].id]
+                `SELECT count(*)+1 AS "message" FROM users WHERE points > ? ORDER BY points DESC`,
+                [rows[0].points]
               );
               res.writeHead(201, { 'Content-Type': 'application/json' });
               res.end(JSON.stringify(val));
