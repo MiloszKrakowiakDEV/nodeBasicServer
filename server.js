@@ -372,7 +372,7 @@ UNION ALL
         });
 
         break;
-        case "/category/getTheory":
+      case "/category/getTheory":
         body = "";
 
         req.on("data", chunk => {
@@ -389,8 +389,13 @@ UNION ALL
               `SELECT formula_info AS "formulaInfo", naming_info AS "namingInfo", chemical_properties AS "chemicalProperties", physical_properties AS "physicalProperties" FROM categories WHERE name = ?`,
               [data.message]
             );
-            res.writeHead(201, { 'Content-Type': 'application/json' });
-            res.end(JSON.stringify(rows[0]));
+            if (rows.length === 0) {
+              throw new Error("Nie znaleziono kategori")
+            } else {
+              res.writeHead(201, { 'Content-Type': 'application/json' });
+              res.end(JSON.stringify(rows[0]));
+            }
+
           } catch (err) {
             console.error(err)
             res.writeHead(401, { 'Content-Type': 'application/json' });
