@@ -270,7 +270,7 @@ const server = http.createServer(async (req, res) => {
               throw new Error("Nieprawidłowe dane logowania");;
             } else {
               const hashedPassword = rows[0].password;
-              if (await bcrypt.compare(data.password, hashedPassword)) {
+              if (await bcrypt.compare(data.oldPassword, hashedPassword)) {
                 const new_password = bcrypt.hash(data.newPassword,SALT_ROUNDS);
                 const [] = await connection.execute(
                 'UPDATE users SET password = ? WHERE user_id = ?',
