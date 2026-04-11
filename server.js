@@ -268,7 +268,7 @@ const server = http.createServer(async (req, res) => {
                 [rows[0].streak]
               );
               res.writeHead(201, { 'Content-Type': 'application/json' });
-              res.end(JSON.stringify(val));
+              res.end(JSON.stringify(val[0]));
             }
           } catch (err) {
             console.error(err)
@@ -303,7 +303,7 @@ const server = http.createServer(async (req, res) => {
                 [rows[0].points]
               );
               res.writeHead(201, { 'Content-Type': 'application/json' });
-              res.end(JSON.stringify(val));
+              res.end(JSON.stringify(val[0]));
             }
           } catch (err) {
             console.error(err)
