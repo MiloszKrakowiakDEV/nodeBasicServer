@@ -264,8 +264,12 @@ const server = http.createServer(async (req, res) => {
               throw new Error("Nieprawidłowe dane logowania");;
             } else {
               const [val] = await connection.execute(
-                `SELECT count(*)+1 AS "message" FROM users WHERE streak >= ? ORDER BY streak DESC, username ASC`,
-                [rows[0].streak]
+                `SELECT count(*)+1 FROM (
+(SELECT * FROM users WHERE streak > ?  ORDER BY streak DESC, username ASC)
+UNION ALL
+(SELECT * FROM users WHERE streak = ? AND username < ? ORDER BY streak DESC, username ASC)
+) AS "Merged table"`,
+                [rows[0].streak, rows[0].streak, data.username]
               );
               res.writeHead(201, { 'Content-Type': 'application/json' });
               res.end(JSON.stringify(val[0]));
@@ -299,8 +303,12 @@ const server = http.createServer(async (req, res) => {
               throw new Error("Nieprawidłowe dane logowania");;
             } else {
               const [val] = await connection.execute(
-                `SELECT count(*)+1 AS "message" FROM users WHERE points >= ? ORDER BY points DESC, username ASC`,
-                [rows[0].points]
+                `SELECT count(*)+1 FROM (
+(SELECT * FROM users WHERE points > ?  ORDER BY points DESC, username ASC)
+UNION ALL
+(SELECT * FROM users WHERE points = ? AND username < ? ORDER BY points DESC, username ASC)
+) AS "Merged table"`,
+                [rows[0].points, rows[0].points, data.username]
               );
               res.writeHead(201, { 'Content-Type': 'application/json' });
               res.end(JSON.stringify(val[0]));
