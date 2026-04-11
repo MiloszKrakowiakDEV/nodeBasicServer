@@ -390,8 +390,7 @@ UNION ALL
               [data.message]
             );
             res.writeHead(201, { 'Content-Type': 'application/json' });
-            res.end(JSON.stringify(rows));
-
+            res.end(JSON.stringify(rows[0]));
           } catch (err) {
             console.error(err)
             res.writeHead(401, { 'Content-Type': 'application/json' });
