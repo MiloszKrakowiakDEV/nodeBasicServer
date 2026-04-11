@@ -265,7 +265,7 @@ const server = http.createServer(async (req, res) => {
             } else {
               const [val] = await connection.execute(
                 `SELECT count(*)+1 AS "message" FROM users WHERE streak > ? ORDER BY streak DESC`,
-                [rows.id]
+                [rows[0].id]
               );
               res.writeHead(201, { 'Content-Type': 'application/json' });
               res.end(JSON.stringify(val));
@@ -300,7 +300,7 @@ const server = http.createServer(async (req, res) => {
             } else {
               const [val] = await connection.execute(
                 `SELECT count(*)+1 AS "message" FROM users WHERE streak > ? ORDER BY points DESC`,
-                [rows.id]
+                [rows[0].id]
               );
               res.writeHead(201, { 'Content-Type': 'application/json' });
               res.end(JSON.stringify(val));
