@@ -406,6 +406,54 @@ UNION ALL
         });
 
         break;
+      case "/user/getUnansweredQuestionsByCategoryAndType":
+        body = "";
+
+        req.on("data", chunk => {
+          body += chunk.toString();
+        });
+
+        req.on("end", async () => {
+          let connection;
+
+          try {
+            const data = JSON.parse(body);
+            connection = await pool.getConnection();
+            const [rows1] = (await connection.execute(
+              'select id from users where username = ?',
+              [data.username])
+            )
+            const [rows2] = (await connection.execute(
+              'select id from categories where name = ?',
+              [data.category])
+            )
+            const [rows] = await connection.execute(
+              `select q.id, q.category_id as categoryId, q.type, q.content, q.answers, q.points_award as pointsAward from (select id from (select q.id from questions as q
+union all
+select  q.id
+from questions q left join user_questions_answered uqa on uqa.question_id  = q.id
+inner join users u on u.id = uqa.user_id  where  type = ? and uqa.user_id = ?)
+as mt group by mt.id having count(mt.id) = 1
+) as qid inner join questions q on q.id = qid.id where q.category_id = ?`,
+              [data.type, rows1[0].id, rows2[0].id]
+            );
+            if (rows.length === 0) {
+              throw new Error("Użytkownik odpowiedział na wszystkie pytania")
+            } else {
+              res.writeHead(201, { 'Content-Type': 'application/json' });
+              res.end(JSON.stringify(rows));
+            }
+
+          } catch (err) {
+            console.error(err)
+            res.writeHead(401, { 'Content-Type': 'application/json' });
+            res.end(JSON.stringify({ error: err.message }));
+          } finally {
+            if (connection) connection.release();
+          }
+        });
+
+        break;
     }
   }
   else {
