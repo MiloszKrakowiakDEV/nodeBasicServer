@@ -454,7 +454,7 @@ as mt group by mt.id having count(mt.id) = 1
         });
 
         break;
-        case "/user/setQuestionAsAnswered":
+      case "/user/setQuestionAsAnswered":
         body = "";
 
         req.on("data", chunk => {
@@ -470,17 +470,24 @@ as mt group by mt.id having count(mt.id) = 1
             const [rows] = await connection.execute(
               'select id from users where username = ?',
               [data.username])
-            
             const [rows1] = await connection.execute(
+              'select points_award from questions where id = ?',
+              [data.questionId])
+
+            const [] = await connection.execute(
               'insert into user_questions_answered(user_id, question_id) values(?,?)',
-              [rows[0].id,data.questionId])
-            
-            
+              [rows[0].id, data.questionId])
+              
+            const [] = await connection.execute(
+              'update users set points = points + ? where id = ?',
+              [rows1[0].points_award,rows[0].id])
+
+
             if (rows.length === 0) {
               throw new Error("Użytkownik nie istnieje")
             } else {
               res.writeHead(201, { 'Content-Type': 'application/json' });
-              res.end(JSON.stringify({message:"Poprawnie odpowiedziano"}));
+              res.end(JSON.stringify({ message: "Poprawnie odpowiedziano" }));
             }
 
           } catch (err) {
