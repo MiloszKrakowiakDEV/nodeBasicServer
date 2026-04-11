@@ -372,6 +372,36 @@ UNION ALL
         });
 
         break;
+        case "/category/getTheory":
+        body = "";
+
+        req.on("data", chunk => {
+          body += chunk.toString();
+        });
+
+        req.on("end", async () => {
+          let connection;
+
+          try {
+            const data = JSON.parse(body);
+            connection = await pool.getConnection();
+            const [rows] = await connection.execute(
+              `SELECT formula_info AS "formulaInfo", naming_info AS "namingInfo", chemical_properties AS "chemicalProperties", physical_properties AS "physicalProperties" FROM categories WHERE name = ?`,
+              [data.message]
+            );
+            res.writeHead(201, { 'Content-Type': 'application/json' });
+            res.end(JSON.stringify(rows));
+
+          } catch (err) {
+            console.error(err)
+            res.writeHead(401, { 'Content-Type': 'application/json' });
+            res.end(JSON.stringify({ error: err.message }));
+          } finally {
+            if (connection) connection.release();
+          }
+        });
+
+        break;
     }
   }
   else {
