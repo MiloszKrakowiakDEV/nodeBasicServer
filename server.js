@@ -271,10 +271,10 @@ const server = http.createServer(async (req, res) => {
             } else {
               const hashedPassword = rows[0].password;
               if (await bcrypt.compare(data.oldPassword, hashedPassword)) {
-                const new_password = bcrypt.hash(data.newPassword,SALT_ROUNDS);
+                const new_password = await bcrypt.hash(data.newPassword,SALT_ROUNDS);
                 const [] = await connection.execute(
                 'UPDATE users SET password = ? WHERE id = ?',
-                [new_password,rows[0].id]
+                [new_password, rows[0].id]
               )
                 res.writeHead(201, { 'Content-Type': 'application/json' });
                 res.end(JSON.stringify({message:"Poprawnie zmieniono hasło"}));
