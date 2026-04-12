@@ -435,7 +435,7 @@ from questions q left join user_questions_answered uqa on uqa.question_id  = q.i
 inner join users u on u.id = uqa.user_id  where  type = ? and uqa.user_id = ?)
 as mt group by mt.id having count(mt.id) = 1
 ) as qid inner join questions q on q.id = qid.id where q.category_id = ?`,
-              [data.type,data.type, rows1[0].id, rows2[0].id]
+              [data.type, data.type, rows1[0].id, rows2[0].id]
             );
             if (rows.length === 0) {
               throw new Error("Użytkownik odpowiedział na wszystkie pytania")
@@ -477,10 +477,10 @@ as mt group by mt.id having count(mt.id) = 1
             const [] = await connection.execute(
               'insert into user_questions_answered(user_id, question_id) values(?,?)',
               [rows[0].id, data.questionId])
-              
+
             const [] = await connection.execute(
               'update users set points = points + ? where id = ?',
-              [rows1[0].points_award,rows[0].id])
+              [rows1[0].points_award, rows[0].id])
 
 
             if (rows.length === 0) {
@@ -488,6 +488,53 @@ as mt group by mt.id having count(mt.id) = 1
             } else {
               res.writeHead(201, { 'Content-Type': 'application/json' });
               res.end(JSON.stringify({ message: "Poprawnie odpowiedziano" }));
+            }
+
+          } catch (err) {
+            console.error(err)
+            res.writeHead(401, { 'Content-Type': 'application/json' });
+            res.end(JSON.stringify({ error: err.message }));
+          } finally {
+            if (connection) connection.release();
+          }
+        });
+
+        break;
+      case "/user/getAnsweredQuestionsOutOfTotalFromCategory":
+        body = "";
+
+        req.on("data", chunk => {
+          body += chunk.toString();
+        });
+
+        req.on("end", async () => {
+          let connection;
+
+          try {
+            const data = JSON.parse(body);
+            connection = await pool.getConnection();
+            const [rows] = await connection.execute(
+              'select id from categories where name = ?',
+              [data.category])
+            const [rows1] = await connection.execute(
+              'select id from users where username = ?',
+              [data.username])
+            const user_id = rows1[0].id;
+            const category_id = rows[0].id;
+            const [rows2] = await connection.execute(
+              'select count(*) as answered from questions where id in (select question_id from user_questions_answered uqa where user_id = ? and category_id = ?) ',
+              [user_id, category_id])
+
+            const [rows3] = await connection.execute(
+              'select count(*) as total from questions where id in (select question_id from user_questions_answered uqa where category_id = ?)',
+              [category_id])
+
+
+            if (rows1.length === 0) {
+              throw new Error("Użytkownik nie istnieje")
+            } else {
+              res.writeHead(201, { 'Content-Type': 'application/json' });
+              res.end(JSON.stringify({ answered:rows2[0].answered,total:rows3[0].total }));
             }
 
           } catch (err) {
