@@ -428,14 +428,14 @@ UNION ALL
               [data.category])
             )
             const [rows] = await connection.execute(
-              `select q.id, q.category_id as categoryId, q.type, q.content, q.answers, q.points_award as pointsAward from (select id from (select q.id from questions as q
+              `select q.id, q.category_id as categoryId, q.type, q.content, q.answers, q.points_award as pointsAward from (select id from (select q.id from questions as q where q.type=?
 union all
 select  q.id
 from questions q left join user_questions_answered uqa on uqa.question_id  = q.id
 inner join users u on u.id = uqa.user_id  where  type = ? and uqa.user_id = ?)
 as mt group by mt.id having count(mt.id) = 1
 ) as qid inner join questions q on q.id = qid.id where q.category_id = ?`,
-              [data.type, rows1[0].id, rows2[0].id]
+              [data.type,data.type, rows1[0].id, rows2[0].id]
             );
             if (rows.length === 0) {
               throw new Error("Użytkownik odpowiedział na wszystkie pytania")
