@@ -526,7 +526,7 @@ as mt group by mt.id having count(mt.id) = 1
               [user_id, category_id])
 
             const [rows3] = await connection.execute(
-              'select count(*) as total from questions where id in (select question_id from user_questions_answered uqa where category_id = ?)',
+              'select count(*) from questions where category_id = ?',
               [category_id])
 
 
@@ -534,7 +534,7 @@ as mt group by mt.id having count(mt.id) = 1
               throw new Error("Użytkownik nie istnieje")
             } else {
               res.writeHead(201, { 'Content-Type': 'application/json' });
-              res.end(JSON.stringify({ answered:rows2[0].answered,total:rows3[0].total }));
+              res.end(JSON.stringify({ answered: rows2[0].answered, total: rows3[0].total }));
             }
 
           } catch (err) {
