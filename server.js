@@ -526,7 +526,7 @@ as mt group by mt.id having count(mt.id) = 1
               [user_id, category_id])
 
             const [rows3] = await connection.execute(
-              'select count(*) from questions where category_id = ?',
+              'select count(*) as total from questions where category_id = ?',
               [category_id])
 
 
